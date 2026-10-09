@@ -32,7 +32,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link
-      href={`/products/${product.id}`}
+      href={`/product/${product.id}`}
       className="flex min-h-[154px] flex-col justify-between rounded-xl border border-[#E6EBE6] bg-white p-4 transition-all duration-200 hover:border-green-300 hover:shadow-md"
     >
       {/* Product name */}
