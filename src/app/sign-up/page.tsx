@@ -1,9 +1,10 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 import { authClient } from "@/lib/auth-client";
 
 export default function SignUpPage() {
@@ -13,23 +14,29 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const handleSignUp = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
+  const inputClass =
+    "w-full rounded-lg border border-gray-200 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-green-600";
+
+  const labelClass =
+    "mb-2 block text-sm font-medium text-gray-800";
+
+  const handleSignUp = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
 
-    if (password !== confirmPassword) {
-      setError("পাসওয়ার্ড দুটি মিলছে না।");
+    if (!name.trim()) {
+      toast.error("আপনার নাম লিখুন।");
       return;
     }
 
     if (password.length < 8) {
-      setError("পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।");
+      toast.error("পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error("পাসওয়ার্ড দুটি মিলছে না।");
       return;
     }
 
@@ -37,20 +44,33 @@ export default function SignUpPage() {
 
     try {
       const { error } = await authClient.signUp.email({
-        name,
-        email,
+        name: name.trim(),
+        email: email.trim(),
         password,
       });
 
       if (error) {
-        setError(error.message || "অ্যাকাউন্ট তৈরি করা যায়নি।");
+        toast.error(error.message || "অ্যাকাউন্ট তৈরি করা যায়নি।");
         return;
       }
 
-      router.push("/");
+      // Better Auth may create a session on registration.
+      // Sign out so the user can log in separately.
+      const { error: signOutError } = await authClient.signOut();
+
+      if (signOutError) {
+        toast.error(
+          "অ্যাকাউন্ট তৈরি হয়েছে, কিন্তু সেশন শেষ করা যায়নি।"
+        );
+        return;
+      }
+
+      toast.success("অ্যাকাউন্ট তৈরি হয়েছে! এখন সাইন ইন করুন।");
+
+      router.replace("/sign-in");
       router.refresh();
     } catch {
-      setError("অ্যাকাউন্ট তৈরি করতে সমস্যা হয়েছে।");
+      toast.error("অ্যাকাউন্ট তৈরি করতে সমস্যা হয়েছে।");
     } finally {
       setLoading(false);
     }
@@ -72,67 +92,58 @@ export default function SignUpPage() {
         </div>
 
         {/* Sign Up Card */}
-        <div className="rounded-2xl border border-[#E2E9E2] bg-white p-6">
+        <div className="rounded-2xl border border-[#E2E9E2] bg-white p-6 text-gray-900">
           <form onSubmit={handleSignUp} className="space-y-4">
 
             {/* Name */}
             <div>
-              <label
-                htmlFor="name"
-                className="mb-2 block text-sm font-medium"
-              >
+              <label htmlFor="name" className={labelClass}>
                 নাম
               </label>
-
               <input
                 id="name"
                 type="text"
                 required
+                autoComplete="name"
+                placeholder="যেমন: রহিম উদ্দিন"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="যেমন: রহিম উদ্দিন"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 outline-none focus:border-green-600"
+                className={inputClass}
               />
             </div>
 
             {/* Email */}
             <div>
-              <label
-                htmlFor="email"
-                className="mb-2 block text-sm font-medium"
-              >
+              <label htmlFor="email" className={labelClass}>
                 ইমেইল
               </label>
-
               <input
                 id="email"
                 type="email"
                 required
+                autoComplete="email"
+                placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 outline-none focus:border-green-600"
+                className={inputClass}
               />
             </div>
 
             {/* Password */}
             <div>
-              <label
-                htmlFor="password"
-                className="mb-2 block text-sm font-medium"
-              >
+              <label htmlFor="password" className={labelClass}>
                 পাসওয়ার্ড
               </label>
-
               <input
                 id="password"
                 type="password"
                 required
                 minLength={8}
+                autoComplete="new-password"
+                placeholder="কমপক্ষে ৮ অক্ষর"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="কমপক্ষে ৮ অক্ষর"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 outline-none focus:border-green-600"
+                className={inputClass}
               />
             </div>
 
@@ -140,34 +151,29 @@ export default function SignUpPage() {
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="mb-2 block text-sm font-medium"
+                className={labelClass}
               >
                 পাসওয়ার্ড নিশ্চিত করুন
               </label>
-
               <input
                 id="confirmPassword"
                 type="password"
                 required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
                 placeholder="আবার লিখুন"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 outline-none focus:border-green-600"
+                value={confirmPassword}
+                onChange={(e) =>
+                  setConfirmPassword(e.target.value)
+                }
+                className={inputClass}
               />
             </div>
 
-            {/* Error */}
-            {error && (
-              <p role="alert" className="text-sm text-red-600">
-                {error}
-              </p>
-            )}
-
-            {/* Submit Button */}
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-[#008B46] py-3 font-semibold text-white shadow-sm hover:bg-[#00783D] disabled:opacity-60"
+              className="w-full rounded-lg bg-[#008B46] py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#00783D] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading
                 ? "অ্যাকাউন্ট তৈরি হচ্ছে..."
@@ -178,16 +184,18 @@ export default function SignUpPage() {
           {/* Divider */}
           <div className="my-5 flex items-center gap-3">
             <div className="h-px flex-1 bg-gray-200" />
-            <span className="text-xs text-gray-500">অথবা</span>
+            <span className="text-xs text-gray-500">
+              অথবা
+            </span>
             <div className="h-px flex-1 bg-gray-200" />
           </div>
 
-          {/* Social buttons */}
+          {/* Social Login - configure OAuth later */}
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               disabled
-              className="rounded-lg border border-gray-200 px-2 py-2.5 text-xs text-gray-500 opacity-60"
+              className="rounded-lg border border-gray-200 bg-white px-2 py-2.5 text-xs text-gray-600 opacity-60"
             >
               Google দিয়ে চালিয়ে যান
             </button>
@@ -195,7 +203,7 @@ export default function SignUpPage() {
             <button
               type="button"
               disabled
-              className="rounded-lg border border-gray-200 px-2 py-2.5 text-xs text-gray-500 opacity-60"
+              className="rounded-lg border border-gray-200 bg-white px-2 py-2.5 text-xs text-gray-600 opacity-60"
             >
               GitHub দিয়ে চালিয়ে যান
             </button>
@@ -206,7 +214,7 @@ export default function SignUpPage() {
             অ্যাকাউন্ট আছে?{" "}
             <Link
               href="/sign-in"
-              className="font-semibold text-green-700"
+              className="font-semibold text-green-700 hover:underline"
             >
               সাইন ইন করুন
             </Link>
