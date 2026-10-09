@@ -21,7 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="bn">
+    <html lang="bn"
+    data-theme="light">
       <body
         className={`${notoSerifBengali.className} min-h-screen flex flex-col antialiased`}
       >
