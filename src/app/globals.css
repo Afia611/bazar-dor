@@ -27,4 +27,7 @@
   }
 }
 
+html {
+  scroll-behavior: smooth;
+}
 
