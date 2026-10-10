@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Noto_Serif_Bengali } from "next/font/google";
 import Navbar from "@/components/shared/Navbar";
 import { ToastContainer } from "react-toastify";
-
+import Footer from "@/components/shared/Footer";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 
@@ -30,13 +30,12 @@ export default function RootLayout({
       <body
         className={`${notoSerifBengali.className} min-h-screen bg-[#F0F5F0] antialiased`}
       >
-        {/* Navbar with category links and price ticker */}
         <Navbar />
 
-        {/* Page content */}
+        
         {children}
 
-        {/* React Toastify notifications */}
+        <Footer />
         <ToastContainer
           position="top-right"
           autoClose={3000}
