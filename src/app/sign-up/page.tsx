@@ -15,6 +15,9 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<
+    "google" | "github" | null
+  >(null);
 
   const inputClass =
     "w-full rounded-lg border border-gray-200 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-green-600";
@@ -76,10 +79,33 @@ export default function SignUpPage() {
     }
   };
 
+  const handleSocialLogin = async (
+    provider: "google" | "github"
+  ) => {
+    setSocialLoading(provider);
+
+    try {
+      const { error } = await authClient.signIn.social({
+        provider,
+        callbackURL: "/",
+        errorCallbackURL: "/sign-in",
+      });
+
+      if (error) {
+        toast.error(
+          error.message || "সোশ্যাল লগইন করা যায়নি।"
+        );
+        setSocialLoading(null);
+      }
+    } catch {
+      toast.error("সোশ্যাল লগইন করতে সমস্যা হয়েছে।");
+      setSocialLoading(null);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#F0F5F0] px-4 py-12">
       <div className="mx-auto max-w-md">
-
         {/* Heading */}
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-[#25342A]">
@@ -94,7 +120,6 @@ export default function SignUpPage() {
         {/* Sign Up Card */}
         <div className="rounded-2xl border border-[#E2E9E2] bg-white p-6 text-gray-900">
           <form onSubmit={handleSignUp} className="space-y-4">
-
             {/* Name */}
             <div>
               <label htmlFor="name" className={labelClass}>
@@ -162,9 +187,7 @@ export default function SignUpPage() {
                 autoComplete="new-password"
                 placeholder="আবার লিখুন"
                 value={confirmPassword}
-                onChange={(e) =>
-                  setConfirmPassword(e.target.value)
-                }
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 className={inputClass}
               />
             </div>
@@ -172,7 +195,7 @@ export default function SignUpPage() {
             {/* Submit */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || socialLoading !== null}
               className="w-full rounded-lg bg-[#008B46] py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#00783D] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading
@@ -190,22 +213,28 @@ export default function SignUpPage() {
             <div className="h-px flex-1 bg-gray-200" />
           </div>
 
-          {/* Social Login - configure OAuth later */}
+          {/* Social Login */}
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              disabled
-              className="rounded-lg border border-gray-200 bg-white px-2 py-2.5 text-xs text-gray-600 opacity-60"
+              onClick={() => handleSocialLogin("google")}
+              disabled={loading || socialLoading !== null}
+              className="rounded-lg border border-gray-200 bg-white px-2 py-2.5 text-xs text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Google দিয়ে চালিয়ে যান
+              {socialLoading === "google"
+                ? "অপেক্ষা করুন..."
+                : "Google দিয়ে চালিয়ে যান"}
             </button>
 
             <button
               type="button"
-              disabled
-              className="rounded-lg border border-gray-200 bg-white px-2 py-2.5 text-xs text-gray-600 opacity-60"
+              onClick={() => handleSocialLogin("github")}
+              disabled={loading || socialLoading !== null}
+              className="rounded-lg border border-gray-200 bg-white px-2 py-2.5 text-xs text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              GitHub দিয়ে চালিয়ে যান
+              {socialLoading === "github"
+                ? "অপেক্ষা করুন..."
+                : "GitHub দিয়ে চালিয়ে যান"}
             </button>
           </div>
 
