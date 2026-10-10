@@ -3,14 +3,14 @@
 
 import {
   Suspense,
+  useEffect,
+  useRef,
   useState,
-  type FormEvent,
+  type SubmitEvent,
 } from "react";
+
 import Link from "next/link";
-import {
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { authClient } from "@/lib/auth-client";
 
@@ -22,13 +22,33 @@ function SignInForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const notificationShown = useRef(false);
+
+  // Shows notification when redirected from a protected page
+  useEffect(() => {
+    if (notificationShown.current) return;
+
+    const callbackURL = searchParams.get("callbackURL");
+
+    if (callbackURL?.startsWith("/product/")) {
+      notificationShown.current = true;
+      toast.info("বিস্তারিত দেখতে প্রথমে লগ ইন করুন।");
+    } else if (callbackURL?.startsWith("/profile")) {
+      notificationShown.current = true;
+      toast.info("প্রোফাইল দেখতে প্রথমে লগ ইন করুন।");
+    }
+  }, [searchParams]);
+
   const inputClass =
     "w-full rounded-lg border border-gray-200 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-green-600";
 
   const labelClass =
     "mb-2 block text-sm font-medium text-gray-800";
 
-  const handleSignIn = async (e: FormEvent<HTMLFormElement>) => {
+  // Handle email/password sign in
+  const handleSignIn = async (
+    e: SubmitEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
     setLoading(true);
 
@@ -47,7 +67,7 @@ function SignInForm() {
 
       toast.success("সফলভাবে সাইন ইন হয়েছে!");
 
-      // Redirect back to product if login was required.
+      // Redirect to the originally requested page
       const callbackURL =
         searchParams.get("callbackURL") || "/";
 
@@ -72,7 +92,6 @@ function SignInForm() {
   return (
     <main className="min-h-screen bg-[#F0F5F0] px-4 py-14">
       <div className="mx-auto max-w-md">
-
         {/* Heading */}
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-[#25342A]">
@@ -91,12 +110,15 @@ function SignInForm() {
             onSubmit={handleSignIn}
             className="space-y-4"
           >
-
             {/* Email */}
             <div>
-              <label htmlFor="email" className={labelClass}>
+              <label
+                htmlFor="email"
+                className={labelClass}
+              >
                 ইমেইল
               </label>
+
               <input
                 id="email"
                 type="email"
@@ -111,9 +133,13 @@ function SignInForm() {
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className={labelClass}>
+              <label
+                htmlFor="password"
+                className={labelClass}
+              >
                 পাসওয়ার্ড
               </label>
+
               <input
                 id="password"
                 type="password"
@@ -126,7 +152,7 @@ function SignInForm() {
               />
             </div>
 
-            {/* Submit */}
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -147,21 +173,56 @@ function SignInForm() {
 
           {/* Social Login - configure OAuth later */}
           <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              disabled
-              className="rounded-lg border border-gray-200 bg-white px-2 py-2.5 text-xs text-gray-600 opacity-60"
-            >
-              Google দিয়ে চালিয়ে যান
+            <button type="button" disabled={loading} onClick={async () => {
+              setLoading(true);
+              
+              try {
+                const { error } = await authClient.signIn.social({
+                  provider: "google",
+                  callbackURL: "/",
+                });
+                if (error) {
+                  toast.error(
+                    error.message || "Google দিয়ে সাইন ইন করা যায়নি।"
+                  );
+                  setLoading(false);
+                }
+              } catch {
+                toast.error("Google সাইন ইন করতে সমস্যা হয়েছে।");
+                setLoading(false);
+              }
+           }}
+           className="rounded-lg border border-gray-200 bg-white px-2 py-2.5 text-xs font-medium text-gray-800 transition hover:bg-gray-50 disabled:opacity-60"
+           >
+             Google দিয়ে চালিয়ে যান
             </button>
 
             <button
-              type="button"
-              disabled
-              className="rounded-lg border border-gray-200 bg-white px-2 py-2.5 text-xs text-gray-600 opacity-60"
-            >
-              GitHub দিয়ে চালিয়ে যান
-            </button>
+            type="button"
+            disabled={loading} onClick={async () => {
+              setLoading(true);
+              
+            try {
+              const { error } = await authClient.signIn.social({
+                provider: "github",
+                callbackURL: "/",
+          });
+          
+          if (error) {
+            toast.error(
+              error.message || "GitHub দিয়ে সাইন ইন করা যায়নি।"
+            );
+            setLoading(false);
+          }
+        } catch {
+          toast.error("GitHub সাইন ইন করতে সমস্যা হয়েছে।");
+      setLoading(false);
+    }
+  }}
+  className="rounded-lg border border-gray-200 bg-white px-2 py-2.5 text-xs font-medium text-gray-800 transition hover:bg-gray-50 disabled:opacity-60"
+>
+  GitHub দিয়ে চালিয়ে যান
+</button>
           </div>
 
           {/* Sign Up Link */}
@@ -176,7 +237,7 @@ function SignInForm() {
           </p>
         </div>
 
-        {/* Back Home */}
+        {/* Back to Home */}
         <div className="mt-6 text-center">
           <Link
             href="/"

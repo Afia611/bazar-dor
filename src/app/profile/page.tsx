@@ -132,6 +132,40 @@ export default function ProfilePage() {
           </div>
         </section>
 
+        {/* Connect GitHub */}
+        <section className="mb-6 rounded-2xl border border-[#E2E9E2] bg-white p-6">
+        <h2 className="mb-3 text-lg font-bold text-gray-900">
+           GitHub অ্যাকাউন্ট সংযুক্ত করুন
+         </h2>
+
+        <p className="mb-4 text-sm text-gray-600">
+           আপনার বর্তমান অ্যাকাউন্টের সাথে GitHub সংযুক্ত করুন।
+        </p>
+
+        <button
+          type="button"
+          onClick={async () => {
+           try {
+             const { error } = await authClient.linkSocial({
+              provider: "github",
+              callbackURL: "/profile",
+         });
+
+         if (error) {
+          toast.error(
+            error.message || "GitHub সংযুক্ত করা যায়নি।"
+          );
+        }
+      } catch {
+        toast.error("GitHub সংযুক্ত করতে সমস্যা হয়েছে।");
+      }
+    }}
+    className="rounded-lg bg-[#008B46] px-6 py-3 text-sm font-semibold text-white hover:bg-[#00783D]"
+    >
+        Connect GitHub
+      </button>
+       </section>
+
         {/* Account Actions */}
         <section className="rounded-2xl border border-[#E2E9E2] bg-white p-6 text-gray-900 shadow-sm md:p-8">
           <h2 className="mb-2 text-lg font-bold text-gray-900">
