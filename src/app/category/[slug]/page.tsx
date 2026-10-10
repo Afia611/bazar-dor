@@ -41,32 +41,33 @@ export default async function CategoryPage({
   const products: Product[] = await productsResponse.json();
 
   // Invalid category or category without products
-  if (!category || products.length === 0) {
-    return (
-      <main className="flex min-h-[65vh] items-center justify-center bg-[#F0F5F0] px-4 py-12">
-        <div className="mx-auto max-w-md rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-          <div className="mb-4 text-5xl">🔍</div>
+ if (!category || products.length === 0) {
+  return (
+    <main className="flex min-h-[70vh] items-center justify-center bg-[#F0F5F0] px-4 py-12">
+      <div className="mx-auto max-w-md text-center">
+        <h1 className="text-7xl font-bold text-green-700 md:text-8xl">
+          404
+        </h1>
 
-          <h1 className="mb-3 text-2xl font-bold text-gray-900">
-            কোনো পণ্য পাওয়া যায়নি
-          </h1>
+        <h2 className="mt-5 text-2xl font-bold text-gray-900">
+          ক্যাটাগরি খুঁজে পাওয়া যায়নি
+        </h2>
 
-          <p className="mb-6 text-sm leading-7 text-gray-600">
-            এই ক্যাটাগরিতে কোনো পণ্য নেই অথবা ক্যাটাগরিটি
-            খুঁজে পাওয়া যায়নি।
-          </p>
+        <p className="mt-3 text-sm leading-7 text-gray-600">
+          এই ক্যাটাগরিতে কোনো পণ্য নেই অথবা ক্যাটাগরিটি
+          খুঁজে পাওয়া যায়নি।
+        </p>
 
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center rounded-lg bg-green-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-green-800"
-          >
-            হোম পেজে ফিরে যান
-          </Link>
-        </div>
-      </main>
-    );
-  }
-
+        <Link
+          href="/"
+          className="mt-7 inline-flex rounded-lg bg-green-700 px-6 py-3 text-sm font-semibold text-white hover:bg-green-800"
+        >
+          হোম পেজে ফিরে যান
+        </Link>
+      </div>
+    </main>
+  );
+} 
   return (
     <main className="min-h-screen bg-[#F0F5F0] px-4 py-10 md:py-12">
       <div className="mx-auto max-w-6xl">
