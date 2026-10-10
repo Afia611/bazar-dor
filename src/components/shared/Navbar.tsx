@@ -112,7 +112,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className="w-full bg-white">
+    <header className="sticky top-0 z-50 bg-white">
       {/* First Row: Logo, Date, Authentication */}
       <div className="border-b border-gray-100">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:px-8">
